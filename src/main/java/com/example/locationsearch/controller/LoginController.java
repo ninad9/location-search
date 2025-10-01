@@ -1,6 +1,7 @@
 package com.example.locationsearch.controller;
 
 import com.example.locationsearch.dto.LoginRequest;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<String> login(@Valid @RequestBody LoginRequest loginRequest) {
         logger.info("User logged in: {}", loginRequest.getUserId());
         return ResponseEntity.ok("Login successful");
     }

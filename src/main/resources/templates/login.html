@@ -6,7 +6,6 @@
 <body>
 
 <h2>Login</h2>
-
 <label>User ID: <input type="text" id="userId" /></label><br/>
 <label>Password: <input type="password" id="password" /></label><br/>
 <button onclick="submitLogin()">Login</button>
@@ -25,21 +24,23 @@
             },
             body: JSON.stringify({ userId, password })
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Login failed.");
-            }
-            return response.text();
-        })
-        .then(data => {
-            if (data.includes("Login successful")) {
-                window.location.href = "/search";
+        .then(async response => {
+            if (response.ok) {
+                const text = await response.text();
+                if (text.includes("Login successful")) {
+                    window.location.href = "/search";
+                }
+            } else if (response.status === 400) {
+                const errors = await response.json();
+                let errorMsg = Object.values(errors).join(", ");
+                document.getElementById("message").innerText = errorMsg;
             } else {
-                document.getElementById("message").innerText = "Login failed.";
+                document.getElementById("message").innerText = "Unexpected error.";
             }
         })
         .catch(error => {
-            document.getElementById("message").innerText = error.message;
+            document.getElementById("message").innerText = "Request failed.";
+            console.error(error);
         });
     }
 </script>
