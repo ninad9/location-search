@@ -26,10 +26,9 @@ public class SearchController {
         Optional<Location> result = locationService.findByZipOrCity(query);
         if (result.isPresent()) {
             model.addAttribute("location", result.get());
-            return "result";
         } else {
             model.addAttribute("error", "No location found for input: " + query);
-            return "search";
         }
+        return "search";
     }
 }

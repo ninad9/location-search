@@ -9,8 +9,8 @@ import java.util.Optional;
 
 @Service
 public class LocationService {
-    private Map<String, Location> zipMap = new HashMap<>();
-    private Map<String, Location> cityMap = new HashMap<>();
+    private final Map<String, Location> zipMap = new HashMap<>();
+    private final Map<String, Location> cityMap = new HashMap<>();
 
 
     public Optional<Location> findByZipOrCity(String query) {

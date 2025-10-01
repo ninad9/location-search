@@ -12,7 +12,14 @@
     <button type="submit">Search</button>
 </form>
 
-<p style="color:red;">[[${error}]]</p>
+<p style="color:red;" th:if="${error}" th:text="${error}"></p>
+
+
+<div th:if="${location}">
+    <h3>Location Found</h3>
+    <p><strong>ZIP:</strong> <span th:text="${location.zip}"></span></p>
+    <p><strong>City:</strong> <span th:text="${location.city}"></span></p>
+</div>
 
 <form action="/logout" method="get">
     <button type="submit">Logout</button>
