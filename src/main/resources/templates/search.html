@@ -7,6 +7,11 @@
 
 <h2>Search for Location</h2>
 
+<form action="/result" method="get">
+    <label>ZIP or City: <input type="text" name="query" /></label>
+    <button type="submit">Search</button>
+</form>
+
 <p style="color:red;">[[${error}]]</p>
 
 <form action="/logout" method="get">
