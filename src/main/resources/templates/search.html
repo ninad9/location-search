@@ -1,29 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/html">
 <head>
     <title>Search</title>
 </head>
 <body>
+<center>
+    <h2>Search for Location</h2>
 
-<h2>Search for Location</h2>
+    <form action="/result" method="get">
+        <div>
+            <input type="text" name="query" placeholder="Enter ZIP or City" required/>
+            <button type="submit">Search</button>
+        </div>
+    </form>
 
-<form action="/result" method="get">
-    <label>ZIP or City: <input type="text" name="query" /></label>
-    <button type="submit">Search</button>
-</form>
+    <p style="color:red;" th:if="${error}" th:text="${error}"></p>
 
-<p style="color:red;" th:if="${error}" th:text="${error}"></p>
+    <div th:if="${searchByZip}">
+        <h3>Result</h3>
+        <p><strong>City:</strong> <span th:text="${searchByZip.city()}"></span></p>
+        <p><strong>ZIP:</strong> <span th:text="${searchByZip.zip()}"></span></p>
+    </div>
 
-
-<div th:if="${location}">
-    <h3>Location Found</h3>
-    <p><strong>ZIP:</strong> <span th:text="${location.zip}"></span></p>
-    <p><strong>City:</strong> <span th:text="${location.city}"></span></p>
-</div>
-
-<form action="/logout" method="get">
-    <button type="submit">Logout</button>
-</form>
-
+    <div th:if="${searchByCity}">
+        <h3>Result</h3>
+        <table align="center">
+            <tr>
+                <td><strong>City:</strong></td>
+                <td><span th:text="${cityName}"></span></td>
+            </tr>
+            <tr>
+                <td><strong>ZIP:</strong></td>
+                <td>
+                    <span th:each="loc, iterStat : ${searchByCity}">
+                        <span th:text="${loc.zip()}"></span><span th:if="${!iterStat.last}">, </span>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <form action="/logout" method="get">
+        <button type="submit">Logout</button>
+    </form>
+</center>
 </body>
 </html>
