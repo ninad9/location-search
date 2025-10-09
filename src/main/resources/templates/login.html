@@ -1,62 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Login</title>
 </head>
 <body>
 <div style="text-align: center;">
     <h2>Login</h2>
+
+    <form id="loginForm" onsubmit="submitLogin(event)">
         <label for="userId">User ID:</label>
-        <input type="text" id="userId" name="userId" placeholder="Enter User ID" required/><br><br>
+        <input type="text" id="userId" name="userId" placeholder="Enter User ID" required /><br><br>
 
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" placeholder="Enter Password" required/><br><br>
+        <input type="password" id="password" name="password" placeholder="Enter Password" required /><br><br>
 
-        <button onclick="submitLogin()">Login</button>
+        <button type="submit">Login</button>
+    </form>
 
     <p id="message" style="color:red;"></p>
 
     <script>
+        async function submitLogin(event) {
+            event.preventDefault();
 
-       async function submitLogin() {
-           const userId = document.getElementById('userId').value;
-           const password = document.getElementById('password').value;
+            const userId = document.getElementById('userId').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const message = document.getElementById("message");
 
-          if (!userId) {
-                document.getElementById("message").innerText = "User ID is required";
+            if (!userId) {
+                message.innerText = "User ID is required";
                 return;
             }
-          if (!password) {
-                document.getElementById("message").innerText = "Password is required";
+            if (!password) {
+                message.innerText = "Password is required";
                 return;
             }
-           fetch('/login', {
-               method: 'POST',
-               headers: {
-                   'Content-Type': 'application/json'
-               },
-               body: JSON.stringify({userId,
-                password})
-           })
-           .then(async response => {
-               if (response.ok) {
-                   const text = await response.text();
-                   if (text.includes("Login successful")) {
-                       window.location.href = "/search";
-                   }
-               } else if (response.status === 400) {
-                   const errors = await response.json();
-                   let errorMsg = Object.values(errors).join(", ");
-                   document.getElementById("message").innerText = errorMsg;
-               } else {
-                   document.getElementById("message").innerText = "Unexpected error.";
-               }
-           })
-           .catch(error => {
-               document.getElementById("message").innerText = "Request failed.";
-               console.error(error);
-           });
-       }
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, password })
+                });
+
+                if (response.ok) {
+                    const text = await response.text();
+                    if (text.includes("Login successful")) {
+                        window.location.href = "/search";
+                    }
+                } else if (response.status === 400) {
+                    const errors = await response.json();
+                    message.innerText = Object.values(errors).join(", ");
+                } else {
+                    message.innerText = "Unexpected error.";
+                }
+            } catch (error) {
+                console.error(error);
+                message.innerText = "Request failed.";
+            }
+        }
     </script>
 </div>
 </body>

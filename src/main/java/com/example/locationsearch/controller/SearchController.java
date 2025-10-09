@@ -2,6 +2,7 @@ package com.example.locationsearch.controller;
 
 import com.example.locationsearch.model.Location;
 import com.example.locationsearch.service.LocationService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,12 +19,18 @@ public class SearchController {
     LocationService locationService;
 
     @GetMapping("/search")
-    public String searchPage() {
+    public String searchPage(HttpSession session) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/login";
+        }
         return "search";
     }
 
     @GetMapping("/result")
-    public String handleSearch(@RequestParam String query, Model model) {
+    public String handleSearch(@RequestParam String query, Model model,  HttpSession session) {
+        if (session.getAttribute("loggedInUser") == null) {
+            return "redirect:/login";
+        }
         if (query == null || query.isBlank()) {
             model.addAttribute("error", "Enter valid input");
             return "search";
