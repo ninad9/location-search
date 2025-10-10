@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class LocationService {
+public class LocationService implements ILocationService {
     private final Map<String, List<String>> cityMap = new HashMap<>();
     private Map<String, String> zipMap;
 
@@ -28,22 +28,21 @@ public class LocationService {
                 .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
+    @Override
     public List<Location> findByCity(String query) {
-        String finalQuery = "";
-        return cityMap.getOrDefault(query.trim().toLowerCase(), List.of())
+        return cityMap.getOrDefault(query.toLowerCase(), List.of())
                 .stream()
-                .map(zip -> new Location(finalQuery.trim().toUpperCase(), zip))
+                .map(zip -> new Location(query.toUpperCase(), zip))
                 .toList();
     }
 
+    @Override
     public Optional<Location> findByZip(String query) {
-        query = query.trim();
         if (zipMap.containsKey(query)) {
-            String city = zipMap.get(query.trim());
-            return city != null ? Optional.of(new Location(city.toUpperCase(), query.trim())) : Optional.empty();
+            String city = zipMap.get(query);
+            return city != null ? Optional.of(new Location(city.toUpperCase(), query)) : Optional.empty();
         }
         return Optional.empty();
-
     }
 
 }
