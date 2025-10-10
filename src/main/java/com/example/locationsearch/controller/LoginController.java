@@ -30,8 +30,10 @@ public class LoginController {
     /**
      * Processes login requests.
      * <p>
+     * Validates {@link LoginRequest} and logs UserId of the user
+     *
      * @param loginRequest the login credentials
-     * @param session the HTTP session used to store login state
+     * @param session      the HTTP session used to store login state
      * @return a {@link ResponseEntity} with status 200 and “Login successful” when login succeeds,
      * or status 400 with error message if credentials are invalid
      * </p>
