@@ -56,10 +56,13 @@ public class LocationService implements ILocationService {
     @Override
     public List<Location> findByCity(String query) {
         logger.debug("Find location for City {}", query);
-        return cityMap.getOrDefault(query.toLowerCase(), List.of())
-                .stream()
-                .map(zip -> new Location(query.toUpperCase(), zip))
-                .toList();
+        if (query == null)
+            return List.of();
+        else
+            return cityMap.getOrDefault(query.toLowerCase(), List.of())
+                    .stream()
+                    .map(zip -> new Location(query.toUpperCase(), zip))
+                    .toList();
     }
 
     /**
@@ -71,7 +74,7 @@ public class LocationService implements ILocationService {
     @Override
     public Optional<Location> findByZip(String query) {
         logger.debug("Find location for ZIP {}", query);
-        if (zipMap.containsKey(query)) {
+        if (query != null && zipMap.containsKey(query)) {
             String city = zipMap.get(query);
             return city != null ? Optional.of(new Location(city.toUpperCase(), query)) : Optional.empty();
         }
