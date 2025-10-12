@@ -113,6 +113,47 @@ public class SearchService {
                 "Greater London",
                 "United Kingdom"
         ));
+
+        locations.add(new Location(
+                "Hamburg",
+                Arrays.asList("20095", "20097", "20099", "20144", "20146"),
+                "Hamburg",
+                "Germany"
+        ));
+
+        locations.add(new Location(
+                "Munich",
+                Arrays.asList("80331", "80333", "80335", "80469", "80538"),
+                "Bavaria",
+                "Germany"
+        ));
+
+        locations.add(new Location(
+                "Cologne",
+                Arrays.asList("50667", "50668", "50670", "50672", "50674"),
+                "North Rhine-Westphalia",
+                "Germany"
+        ));
+
+        locations.add(new Location(
+                "Frankfurt",
+                Arrays.asList("60306", "60308", "60310", "60311", "60313"),
+                "Hesse",
+                "Germany"
+        ));
+
+        locations.add(new Location(
+                "Dortmund",
+                Arrays.asList("44135", "44137", "44139", "44141", "44143"),
+                "North Rhine-Westphalia",
+                "Germany"
+        ));
+        locations.add(new Location(
+                "Flensburg",
+                Arrays.asList("24937", "24939", "24941", "24943", "24944"),
+                "Schleswig-Holstein",
+                "Germany"
+        ));
         return locations;
     }
 

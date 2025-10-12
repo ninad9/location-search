@@ -58,7 +58,6 @@ class LoginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("Login successful"));
 
-        // After login, the session should have loggedInUser attribute
         Object attr = session.getAttribute("loggedInUser");
         assert attr != null && attr.equals("user");
 
@@ -97,7 +96,6 @@ class LoginControllerTest {
      */
     @Test
     void shouldInvalidateSessionAndRedirectOnLogout() throws Exception {
-        // Pre-set a session attribute
         session.setAttribute("loggedInUser", "bob");
 
         mockMvc.perform(get("/logout").session(session))
