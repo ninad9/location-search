@@ -36,9 +36,9 @@ public class SearchService {
 
         List<Location> locations = loadLocationData();
         for (Location location : locations) {
-            cityMap.put(location.getCity(), location);
+            cityMap.put(location.getCity().toLowerCase(), location);
             for (String zip : location.getZipCodes()) {
-                zipMap.put(zip, new Location(location.getCity(), location.getState(),
+                zipMap.put(zip.toLowerCase(), new Location(location.getCity(), location.getState(),
                         location.getCountry()));
             }
         }
@@ -126,10 +126,10 @@ public class SearchService {
         logger.debug("Finding location for input {}", input);
         Location location = null;
         if (input != null) {
-            if (zipMap.containsKey(input)) {
-                location = zipMap.get(input);
-            } else if (cityMap.containsKey(input)) {
-                location = cityMap.get(input);
+            if (zipMap.containsKey(input.toLowerCase())) {
+                location = zipMap.get(input.toLowerCase());
+            } else if (cityMap.containsKey(input.toLowerCase())) {
+                location = cityMap.get(input.toLowerCase());
             }
         }
         return location;
