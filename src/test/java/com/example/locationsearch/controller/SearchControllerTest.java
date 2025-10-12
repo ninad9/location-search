@@ -2,7 +2,6 @@ package com.example.locationsearch.controller;
 
 import com.example.locationsearch.model.Location;
 import com.example.locationsearch.service.SearchService;
-import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -12,7 +11,6 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -151,4 +149,110 @@ class SearchControllerTest {
                 .andExpect(model().attributeExists("result"));
     }
 
+    /**
+     * Test: Verify that input with invalid special characters (@, #, etc.)
+     * should return validation error message.
+     */
+    @Test
+    void shouldRejectInputWithInvalidSpecialCharacters() throws Exception {
+        mockMvc.perform(get("/result")
+                        .param("input", "test@city")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attribute("error", "Input contains invalid characters. Only letters, numbers, spaces, and hyphens are allowed."));
+    }
+
+    /**
+     * Test: Verify that valid city name with hyphen should be accepted and processed.
+     */
+    @Test
+    void shouldAcceptValidCityNameWithHyphen() throws Exception {
+        Location mockDto = new Location();
+        mockDto.setCity("Wilkes-Barre");
+        Mockito.when(searchService.findLocation("Wilkes-Barre")).thenReturn(mockDto);
+
+        mockMvc.perform(get("/result")
+                        .param("input", "Wilkes-Barre")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("result"));
+    }
+
+    /**
+     * Test: Verify that numeric ZIP code input should be accepted and processed.
+     */
+    @Test
+    void shouldAcceptValidZipCode() throws Exception {
+        Location mockDto = new Location();
+        mockDto.setCity("New York");
+        Mockito.when(searchService.findLocation("10001")).thenReturn(mockDto);
+
+        mockMvc.perform(get("/result")
+                        .param("input", "10001")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("result"));
+    }
+
+    /**
+     * Test: Verify that input with only special characters (no letters/numbers)
+     * should return validation error.
+     */
+    @Test
+    void shouldRejectInputWithOnlySpecialCharacters() throws Exception {
+        mockMvc.perform(get("/result")
+                        .param("input", "@#$%")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attribute("error", "Input contains invalid characters. Only letters, numbers, spaces, and hyphens are allowed."));
+    }
+
+    /**
+     * Test: Verify that input with mixed valid and invalid characters
+     * should return validation error.
+     */
+    @Test
+    void shouldRejectInputWithMixedInvalidCharacters() throws Exception {
+        mockMvc.perform(get("/result")
+                        .param("input", "New York@")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attribute("error", "Input contains invalid characters. Only letters, numbers, spaces, and hyphens are allowed."));
+    }
+
+    /**
+     * Test: Verify that input with only hyphens should return validation error message.
+     */
+    @Test
+    void shouldRejectInputWithOnlyHyphens() throws Exception {
+        mockMvc.perform(get("/result")
+                        .param("input", "---")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attribute("error", "Input contains invalid characters. Only letters, numbers, spaces, and hyphens are allowed."));
+    }
+
+    /**
+     * Test: Verify that input with hyphens and spaces but no letters/numbers should be rejected.
+     */
+    @Test
+    void shouldRejectInputWithHyphensAndSpacesOnly() throws Exception {
+        mockMvc.perform(get("/result")
+                        .param("input", " - - ")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attribute("error", "Input contains invalid characters. Only letters, numbers, spaces, and hyphens are allowed."));
+    }
 }

@@ -72,6 +72,10 @@ public class SearchController {
         String normalized = input.strip();
         logger.info("Received search request for input '{}'", normalized);
 
+        if (!isValidSearchInput(normalized)) {
+            model.addAttribute("error", "Input contains invalid characters. Only letters, numbers, spaces, and hyphens are allowed.");
+            return "search";
+        }
         Location location = searchService.findLocation(normalized);
         if (Objects.nonNull(location)) {
             logger.info("Found location for input '{}': {}", normalized, location);
@@ -81,5 +85,20 @@ public class SearchController {
             model.addAttribute("error", "No location found for input: " + normalized);
         }
         return "search";
+    }
+
+    /**
+     * Validates search input to prevent garbage inputs and improve user experience.
+     * Only allows letters, numbers, spaces, and hyphens.
+     *
+     * @param input the normalized search input to validate
+     * @return true if input contains only allowed characters, false otherwise
+     */
+    private boolean isValidSearchInput(String input) {
+        if (!input.matches("^[a-zA-Z0-9\\s\\-]+$")) {
+            return false;
+        }
+
+        return input.matches(".*[a-zA-Z0-9].*");
     }
 }
