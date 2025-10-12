@@ -2,6 +2,7 @@ package com.example.locationsearch.controller;
 
 import com.example.locationsearch.model.Location;
 import com.example.locationsearch.service.SearchService;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -11,6 +12,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -97,12 +99,56 @@ class SearchControllerTest {
     }
 
     /**
-     * Test: Verify that blank input should trigger validation error
+     * Test: Verify that null input should return error message
      */
     @Test
-    void shouldFailValidationForBlankInput() throws Exception {
-        mockMvc.perform(get("/result").param("input", "").session(session))
+    void shouldReturnErrorWhenInputIsMissing() throws Exception {
+        mockMvc.perform(get("/result")
+                        .session(session))
                 .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Test: Verify that empty input should return error message
+     */
+    @Test
+    void shouldReturnErrorWhenInputIsEmpty() throws Exception {
+        mockMvc.perform(get("/result")
+                        .param("input", "")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attribute("error", "Input is required"));
+    }
+
+    /**
+     * Test: Verify that blank input (spaces only) should return error message
+     */
+    @Test
+    void shouldReturnErrorWhenInputIsBlank() throws Exception {
+        mockMvc.perform(get("/result")
+                        .param("input", "   ")
+                        .session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attribute("error", "Input is required"));
+    }
+
+    /**
+     * Test: Verify that valid input with spaces is processed correctly (trimmed)
+     */
+    @Test
+    void shouldProcessValidInputWithSpaces() throws Exception {
+        Location mockDto = new Location();
+        mockDto.setCity("New York");
+        Mockito.when(searchService.findLocation("New York")).thenReturn(mockDto);
+
+        mockMvc.perform(get("/result").param("input", "  New York  ").session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("result"));
     }
 
 }

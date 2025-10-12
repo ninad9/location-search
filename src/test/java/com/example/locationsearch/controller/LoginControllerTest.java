@@ -80,7 +80,7 @@ class LoginControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("{\"userId\":\"User ID is required\"}")));
+                .andExpect(content().string(containsString("{\"userId\":\"User ID must include at least one alphanumeric character\"}")));
     }
 
     /**

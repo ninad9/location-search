@@ -3,8 +3,6 @@ package com.example.locationsearch.controller;
 import com.example.locationsearch.model.Location;
 import com.example.locationsearch.service.SearchService;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +19,7 @@ import java.util.Objects;
  * - Access to search and result endpoints is guarded by checking the "loggedInUser" session attribute.
  */
 @Controller
+//@Validated
 public class SearchController {
     private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
 
@@ -32,8 +31,8 @@ public class SearchController {
      *
      * @param session the current {@link HttpSession} used to validate user authentication
      * @return the name of the view template to render:
-     *  - "search" if the user is authenticated
-     *  - "redirect:/login" if the user is not authenticated
+     * - "search" if the user is authenticated
+     * - "redirect:/login" if the user is not authenticated
      */
     @GetMapping("/search")
     public String searchPage(HttpSession session) {
@@ -56,7 +55,7 @@ public class SearchController {
      */
     @GetMapping("/result")
     public String search(
-            @RequestParam @NotBlank(message = "Input is required") @Size(min = 1, message = "Input must not be empty") String input,
+            @RequestParam String input,
             Model model,
             HttpSession session
     ) {
@@ -65,11 +64,15 @@ public class SearchController {
             logger.info("Unauthenticated access to search — redirecting to login");
             return "redirect:/login";
         }
+        if (input == null || input.isBlank()) {
+            model.addAttribute("error", "Input is required");
+            return "search";
+        }
 
         String normalized = input.strip();
         logger.info("Received search request for input '{}'", normalized);
 
-        Location location = searchService.findLocation(input);
+        Location location = searchService.findLocation(normalized);
         if (Objects.nonNull(location)) {
             logger.info("Found location for input '{}': {}", normalized, location);
             model.addAttribute("result", location);

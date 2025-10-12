@@ -38,12 +38,9 @@ public class LoginController {
      **/
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody LoginRequest loginRequest, HttpSession session) {
-        if (loginRequest.getUserId() != null && !loginRequest.getUserId().isBlank()) {
             session.setAttribute("loggedInUser", loginRequest.getUserId());
             logger.info("User logged in: {}", loginRequest.getUserId());
             return ResponseEntity.ok("Login successful");
-        }
-        return ResponseEntity.badRequest().body("Invalid credentials");
     }
 
     /**
