@@ -1,8 +1,10 @@
 package com.example.locationsearch.controller;
 
 import com.example.locationsearch.model.Location;
-import com.example.locationsearch.service.ILocationService;
+import com.example.locationsearch.service.SearchService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,23 +13,28 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 
 /**
  * Controller that handles search operations for locations by ZIP or city name.
- * <p>
- * Provides endpoints for showing the search page and processing search results.
- * Access to search and result endpoints is guarded by checking the "loggedInUser" session attribute.
- * </p>
+ * - Provides endpoints for showing the search page and processing search results.
+ * - Access to search and result endpoints is guarded by checking the "loggedInUser" session attribute.
  */
 @Controller
 public class SearchController {
     private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
 
     @Autowired
-    ILocationService locationService;
+    SearchService searchService;
 
+    /**
+     * This method handles GET requests to the /search endpoint and returns the search view.
+     *
+     * @param session the current {@link HttpSession} used to validate user authentication
+     * @return the name of the view template to render:
+     *  - "search" if the user is authenticated
+     *  - "redirect:/login" if the user is not authenticated
+     */
     @GetMapping("/search")
     public String searchPage(HttpSession session) {
         if (session.getAttribute("loggedInUser") == null) {
@@ -38,43 +45,38 @@ public class SearchController {
     }
 
     /**
-     * Handles the search request for a ZIP or city name.
-     * <p>
-     * Validates session and input, performs lookup by ZIP first, then by city,
-     * and populates the model accordingly to show results or error message.
-     * </p>
+     * This method accepts a user-provided input string via query parameter, which may represent
+     * either a city name or a ZIP/postal code.
      *
-     * @param query   the ZIP or city name the user entered e.g. Berlin or 10115
-     * @param model   the Spring MVC model to populate attributes
-     * @param session the HTTP session to check for login status
-     * @return view name “search” or redirect to login
+     * @param input   the search term provided by the user; must be non-empty and non-blank
+     * @param model   the Spring {@link Model} used to pass attributes to the view
+     * @param session the current {@link HttpSession} used to verify authentication
+     * @return the name of the view template to render, either /search or a redirect to /login
+     * @throws IllegalArgumentException if input validation fails
      */
     @GetMapping("/result")
-    public String handleSearch(@RequestParam String query, Model model, HttpSession session) {
-        if (session.getAttribute("loggedInUser") == null) {
-            logger.info("Unauthenticated access attempted — redirecting to /login");
+    public String search(
+            @RequestParam @NotBlank(message = "Input is required") @Size(min = 1, message = "Input must not be empty") String input,
+            Model model,
+            HttpSession session
+    ) {
+        Object user = session.getAttribute("loggedInUser");
+        if (user == null) {
+            logger.info("Unauthenticated access to search — redirecting to login");
             return "redirect:/login";
         }
-        if (query == null || query.isBlank()) {
-            logger.warn("Entered blank or null query");
-            model.addAttribute("error", "Enter valid input");
-            return "search";
+
+        String normalized = input.strip();
+        logger.info("Received search request for input '{}'", normalized);
+
+        Location location = searchService.findLocation(input);
+        if (Objects.nonNull(location)) {
+            logger.info("Found location for input '{}': {}", normalized, location);
+            model.addAttribute("result", location);
+        } else {
+            logger.info("No location found for input '{}'", normalized);
+            model.addAttribute("error", "No location found for input: " + normalized);
         }
-        Optional<Location> searchByZip = locationService.findByZip(query.strip());
-        if (searchByZip.isPresent()) {
-            logger.info("Entered ZIP: {}, Location found: {}", query.strip(), searchByZip.get());
-            model.addAttribute("searchByZip", searchByZip.get());
-            return "search";
-        }
-        List<Location> searchByCity = locationService.findByCity(query.strip());
-        if (!searchByCity.isEmpty()) {
-            logger.info("Entered City: {}, Location found: {}", query.strip(), searchByCity);
-            model.addAttribute("searchByCity", searchByCity);
-            model.addAttribute("cityName", query);
-            return "search";
-        }
-        logger.info("Found no search results for query '{}'", query);
-        model.addAttribute("error", "No location found for input: " + query);
         return "search";
     }
 }

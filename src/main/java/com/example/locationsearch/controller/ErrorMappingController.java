@@ -13,9 +13,7 @@ public class ErrorMappingController implements ErrorController {
 
     /**
      * Handles requests forwarded to “/error”.
-     * <p>
      * Instead of showing a Whitelabel error page, this method redirects to the root ("/").
-     * </p>
      **/
     @RequestMapping("/error")
     public String handleError(HttpServletRequest request) {

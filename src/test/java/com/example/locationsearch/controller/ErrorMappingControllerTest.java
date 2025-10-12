@@ -19,10 +19,10 @@ class ErrorMappingControllerTest {
     private MockMvc mockMvc;
 
     /**
-     * Tests that accessing the /error endpoint results in a redirection to the root ("/") path.
+     * Test: Verify that accessing the /error endpoint results in a redirection to the root ("/") path.
      **/
     @Test
-    void whenGetError_thenRedirectToRoot() throws Exception {
+    void shouldRedirectToRootWhenGetError() throws Exception {
         mockMvc.perform(get("/error"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));

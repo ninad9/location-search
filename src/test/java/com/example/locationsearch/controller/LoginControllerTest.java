@@ -29,6 +29,9 @@ class LoginControllerTest {
         session = new MockHttpSession();
     }
 
+    /**
+     * Test: Verify that accessing the root URL ("/") returns the login view.
+     */
     @Test
     void testLoginPage() throws Exception {
         mockMvc.perform(get("/"))
@@ -36,8 +39,11 @@ class LoginControllerTest {
                 .andExpect(view().name("login"));
     }
 
+    /**
+     * Test: Verify that a successful login request sets the session attribute and returns HTTP 200.
+     */
     @Test
-    void testSuccessfulLoginSetsSessionAndReturns200() throws Exception {
+    void shouldSetSessionAndReturn200OnSuccessfulLogin() throws Exception {
         String json = """
                 {
                   "userId": "user",
@@ -58,8 +64,11 @@ class LoginControllerTest {
 
     }
 
+    /**
+     * Test: Verify that login with a blank userId returns HTTP 400 and validation error message.
+     */
     @Test
-    void testLoginWithBlankUserIdReturnsBadRequest() throws Exception {
+    void shouldReturnBadRequestForBlankUserIdOnLogin() throws Exception {
         String json = """
                 {
                   "userId": "",
@@ -74,14 +83,20 @@ class LoginControllerTest {
                 .andExpect(content().string(containsString("{\"userId\":\"User ID is required\"}")));
     }
 
+    /**
+     * Test: Verify that sending a GET request to the "/login" endpoint is rejected.
+     */
     @Test
-    void testGetLoginWithWrongMethod_onLoginEndpoint() throws Exception {
+    void shouldRejectLoginRequestWithWrongHttpMethod() throws Exception {
         mockMvc.perform(get("/login"))
                 .andExpect(status().isMethodNotAllowed());
     }
 
+    /**
+     * Test: Verify that accessing "/logout" invalidates the session and redirects to the login page.
+     */
     @Test
-    void testLogoutInvalidatesSessionAndRedirects() throws Exception {
+    void shouldInvalidateSessionAndRedirectOnLogout() throws Exception {
         // Pre-set a session attribute
         session.setAttribute("loggedInUser", "bob");
 

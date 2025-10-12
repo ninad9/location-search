@@ -1,20 +1,17 @@
 package com.example.locationsearch.controller;
 
 import com.example.locationsearch.model.Location;
-import com.example.locationsearch.service.ILocationService;
+import com.example.locationsearch.service.SearchService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-import java.util.Optional;
-
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -28,30 +25,31 @@ class SearchControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private ILocationService locationService;
+    private SearchService searchService;
 
     private MockHttpSession session;
 
     @BeforeEach
     void setUp() {
         session = new MockHttpSession();
+        session.setAttribute("loggedInUser", "testUser");
     }
 
     /**
-     * Tests that accessing /search without a logged-in user redirects to the login page.
+     * Test: Verify that accessing /search without a logged-in user redirects to the login page.
      */
     @Test
-    void whenNotLoggedIn_thenSearchRedirectsToLogin() throws Exception {
+    void shouldSearchRedirectsToLoginIfNotLoggedIn() throws Exception {
         mockMvc.perform(get("/search"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
     }
 
     /**
-     * Tests that accessing /search with a valid session shows the search view.
+     * Test: Verify that accessing /search with a valid session shows the search view.
      */
     @Test
-    void whenLoggedIn_thenSearchPageView() throws Exception {
+    void shouldSearchPageViewIfLoggedIn() throws Exception {
         session.setAttribute("loggedInUser", "user123");
 
         mockMvc.perform(get("/search").session(session))
@@ -60,77 +58,51 @@ class SearchControllerTest {
     }
 
     /**
-     * Tests that accessing /result without a logged-in user redirects to the login page.
+     * Test: Verify that Unauthenticated access should redirect to /login
      */
     @Test
-    void result_whenNotLoggedIn_redirectsToLogin() throws Exception {
-        mockMvc.perform(get("/result")
-                        .param("query", "Berlin"))
+    void shouldRedirectToLoginIfUnauthenticated() throws Exception {
+        mockMvc.perform(get("/result").param("input", "Dortmund"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
     }
 
     /**
-     * Tests that submitting a blank query to /result shows an error message in the model.
+     * Test: Verify that valid input with matching location should populate model with result
      */
     @Test
-    void result_whenBlankQuery_showsErrorModel() throws Exception {
-        session.setAttribute("loggedInUser", "user123");
-        mockMvc.perform(get("/result").session(session).param("query", "   "))
+    void shouldReturnLocationResultForValidInput() throws Exception {
+        Location mockDto = new Location();
+        mockDto.setCity("Dortmund");
+        Mockito.when(searchService.findLocation("Dortmund")).thenReturn(mockDto);
+
+        mockMvc.perform(get("/result").param("input", "Dortmund").session(session))
                 .andExpect(status().isOk())
-                .andExpect(view().name("search"))
+                .andExpect(model().attributeExists("result"))
+                .andExpect(view().name("search"));
+    }
+
+    /**
+     * Test: Verify that valid input with no matching location should populate model with error
+     */
+    @Test
+    void shouldReturnErrorIfLocationNotFound() throws Exception {
+        Mockito.when(searchService.findLocation(anyString())).thenReturn(null);
+
+        mockMvc.perform(get("/result").param("input", "UnknownCity").session(session))
+                .andExpect(status().isOk())
                 .andExpect(model().attributeExists("error"))
-                .andExpect(model().attribute("error", "Enter valid input"));
+                .andExpect(model().attribute("error", "No location found for input: UnknownCity"))
+                .andExpect(view().name("search"));
     }
 
     /**
-     * Tests that a zip code match returns a Location and sets it in the model under 'searchByZip'.
+     * Test: Verify that blank input should trigger validation error
      */
     @Test
-    void result_whenZipMatch_modelHasSearchByZip() throws Exception {
-        session.setAttribute("loggedInUser", "user123");
-        Location loc = new Location("Berlin", "10115");
-        when(locationService.findByZip("10115")).thenReturn(Optional.of(loc));
-
-        mockMvc.perform(get("/result").session(session).param("query", "10115"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("search"))
-                .andExpect(model().attributeExists("searchByZip"))
-                .andExpect(model().attribute("searchByZip", loc));
+    void shouldFailValidationForBlankInput() throws Exception {
+        mockMvc.perform(get("/result").param("input", "").session(session))
+                .andExpect(status().isBadRequest());
     }
 
-    /**
-     * Tests that a city name match returns multiple Locations and sets them in the model under 'searchByCity'.
-     */
-    @Test
-    void result_whenCityMatch_modelHasSearchByCity() throws Exception {
-        session.setAttribute("loggedInUser", "user123");
-        Location loc1 = new Location("Berlin", "10115");
-        Location loc2 = new Location("Berlin", "10117");
-        when(locationService.findByZip(anyString())).thenReturn(Optional.empty());
-        when(locationService.findByCity("Berlin")).thenReturn(List.of(loc1, loc2));
-
-        mockMvc.perform(get("/result").session(session).param("query", "Berlin"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("search"))
-                .andExpect(model().attributeExists("searchByCity"))
-                .andExpect(model().attribute("cityName", "Berlin"));
-    }
-
-    /**
-     * Tests that no match for a query shows an appropriate error message in the model.
-     */
-    @Test
-    void result_whenNoMatch_showsNoResultError() throws Exception {
-        session.setAttribute("loggedInUser", "user123");
-        when(locationService.findByZip(anyString())).thenReturn(Optional.empty());
-        when(locationService.findByCity(anyString())).thenReturn(List.of());
-
-        String query = "Unknown";
-        mockMvc.perform(get("/result").session(session).param("query", query))
-                .andExpect(status().isOk())
-                .andExpect(view().name("search"))
-                .andExpect(model().attributeExists("error"))
-                .andExpect(model().attribute("error", "No location found for input: " + query));
-    }
 }

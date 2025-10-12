@@ -29,14 +29,12 @@ public class LoginController {
 
     /**
      * Processes login requests.
-     * <p>
-     * Validates {@link LoginRequest} and logs UserId of the user
+     * - Validates {@link LoginRequest} and logs UserId of the user
      *
      * @param loginRequest the login credentials
      * @param session      the HTTP session used to store login state
      * @return a {@link ResponseEntity} with status 200 and “Login successful” when login succeeds,
      * or status 400 with error message if credentials are invalid
-     * </p>
      **/
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody LoginRequest loginRequest, HttpSession session) {
@@ -49,11 +47,10 @@ public class LoginController {
     }
 
     /**
-     * Logs out the current user.
-     * <p>
-     * This invalidates the HTTP session.
-     * After logout, the user is redirected to the root page.
-     * </p>
+     * Performs user logout.
+     * - Logs out the current user.
+     * - Invalidates the HTTP session.
+     * - After logout, the user is redirected to the root page.
      **/
     @GetMapping("/logout")
     public String logout(HttpSession session) {
